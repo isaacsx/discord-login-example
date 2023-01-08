@@ -1,0 +1,23 @@
+---
+import { commitSession, getSession } from "@lib/session";
+import { discordLogin } from "@lib/discord";
+
+const { url, request } = Astro;
+const { searchParams } = url;
+
+const code = searchParams.get("code");
+if (!code) return new Response("No code provided", { status: 200 });
+
+const bearer = await discordLogin.handleCallback(code);
+
+const session = await getSession(Astro.request);
+session.set("bearer", bearer);
+
+return new Response(null, {
+  status: 302,
+  headers: {
+    location: "/",
+    "set-cookie": await commitSession(session),
+  },
+});
+---

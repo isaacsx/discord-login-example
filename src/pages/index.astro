@@ -1,0 +1,60 @@
+---
+import { getSession } from "@lib/session";
+import { discordLogin } from "@lib/discord";
+import Layout from "@layouts/Layout.astro";
+
+const session = await getSession(Astro.request);
+const bearer = session.get("bearer");
+if (!bearer) return Astro.redirect("/login");
+
+const user = await discordLogin.getUserData(bearer);
+const guilds = await discordLogin.getUserGuilds(bearer);
+---
+
+<Layout title="Dashboard">
+  <div class="guilds">
+    {
+      guilds.map((guild) => {
+        return (
+          <div class="guild">
+            <img
+              draggable="false"
+              src={
+                guild.icon
+                  ? `https://cdn.discordapp.com/icons/${guild.id}/${
+                      guild.icon
+                    }.${guild.icon.startsWith("a_") ? "gif" : "png"}?size=4096`
+                  : `https://avatar.oxro.io/avatar.svg?name=${guild.name
+                      .split(" ")
+                      .join("+")}&background=292929&color=000`
+              }
+              width="120px"
+            />
+            <div class="name">{guild.name}</div>
+          </div>
+        );
+      })
+    }
+  </div>
+</Layout>
+
+<style>
+  .guilds {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-gap: 1rem;
+    padding: 1rem;
+  }
+  .guild {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 0.1rem #000;
+  }
+  .guild img {
+    border-radius: 1rem;
+  }
+</style>
